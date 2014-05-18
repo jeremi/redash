@@ -133,8 +133,10 @@
       return this.filteredData;
     }
 
-    QueryResult.prototype.getChartData = function () {
+    QueryResult.prototype.getChartData = function (mapping) {
       var series = {};
+
+      console.log(mapping);
 
       _.each(this.getData(), function (row) {
         var point = {};
@@ -143,8 +145,15 @@
         var yValues = {};
 
         _.each(row, function (value, definition) {
-          var type = definition.split("::")[1];
           var name = definition.split("::")[0];
+          var type = definition.split("::")[1];
+          if (mapping) {
+            type = mapping[definition];
+          }
+
+          if (type == 'unused') {
+            return;
+          }
 
           if (type == 'x') {
             xValue = value;
