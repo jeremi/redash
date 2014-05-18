@@ -1,10 +1,9 @@
 (function() {
   var DashboardCtrl = function($scope, Events, Widget, $routeParams, $http, $timeout, Dashboard) {
-    Events.record(currentUser, "view", "dashboard", dashboard.id);
-
     $scope.refreshEnabled = false;
     $scope.refreshRate = 60;
     $scope.dashboard = Dashboard.get({ slug: $routeParams.dashboardSlug }, function (dashboard) {
+      Events.record(currentUser, "view", "dashboard", dashboard.id);
       $scope.$parent.pageTitle = dashboard.name;
       var filters = {};
 
