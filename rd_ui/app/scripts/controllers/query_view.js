@@ -24,7 +24,7 @@
       if (data) {
         data.id = $scope.query.id;
       } else {
-        data = $scope.query;
+        data = _.clone($scope.query);
       }
 
       options = _.extend({}, {
@@ -32,8 +32,8 @@
         errorMessage: 'Query could not be saved'
       }, options);
 
-      delete $scope.query.latest_query_data;
-      delete $scope.query.queryResult;
+      delete data.latest_query_data;
+      delete data.queryResult;
 
       return Query.save(data, function() {
         growl.addSuccessMessage(options.successMessage);

@@ -111,7 +111,21 @@ def status_api():
 
     manager_status = redis_connection.hgetall('redash:status')
     status['manager'] = manager_status
-    status['manager']['queue_size'] = 'Unknown'#redis_connection.zcard('jobs')
+    status['manager']['queue_size'] = redis_connection.llen('queries') + redis_connection.llen('scheduled_queries')
+    status['manager']['outdated_queries_count'] = models.Query.outdated_queries().count()
+
+    queues = {}
+    for ds in models.DataSource.select():
+        for queue in (ds.queue_name, ds.scheduled_queue_name):
+            queues.setdefault(queue, set())
+            queues[queue].add(ds.name)
+
+    status['manager']['queues'] = {}
+    for queue, sources in queues.iteritems():
+        status['manager']['queues'][queue] = {
+            'data_sources': ', '.join(sources),
+            'size': redis_connection.llen(queue)
+        }
 
     return jsonify(status)
 
@@ -281,11 +295,11 @@ class QueryListAPI(BaseResource):
 
         query.create_default_visualizations()
 
-        return query.to_dict(with_result=False)
+        return query.to_dict()
 
     @require_permission('view_query')
     def get(self):
-        return [q.to_dict(with_result=False, with_stats=True) for q in models.Query.all_queries()]
+        return [q.to_dict(with_stats=True) for q in models.Query.all_queries()]
 
 
 class QueryAPI(BaseResource):
@@ -305,7 +319,7 @@ class QueryAPI(BaseResource):
 
         query = models.Query.get_by_id(query_id)
 
-        return query.to_dict(with_result=False, with_visualizations=True)
+        return query.to_dict(with_visualizations=True)
 
     @require_permission('view_query')
     def get(self, query_id):
@@ -339,6 +353,7 @@ class VisualizationAPI(BaseResource):
         if 'options' in kwargs:
             kwargs['options'] = json.dumps(kwargs['options'])
         kwargs.pop('id', None)
+        kwargs.pop('query_id', None)
 
         update = models.Visualization.update(**kwargs).where(models.Visualization.id == visualization_id)
         update.execute()
@@ -394,7 +409,7 @@ class QueryResultListAPI(BaseResource):
                         'error': 'Access denied for table(s): %s' % (metadata.used_tables)
                     }
                 }
-        
+
         models.ActivityLog(
             user=self.current_user,
             type=models.ActivityLog.QUERY_EXECUTION,
