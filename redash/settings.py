@@ -74,3 +74,4 @@ ANALYTICS = os.environ.get("REDASH_ANALYTICS", "")
 
 # Features:
 FEATURE_TABLES_PERMISSIONS = parse_boolean(os.environ.get("REDASH_FEATURE_TABLES_PERMISSIONS", "false"))
+FEATURE_JINJA2_TEMPLATES = parse_boolean(os.environ.get("REDASH_FEATURE_JINJA2_TEMPLATES", "false"))

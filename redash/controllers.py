@@ -21,6 +21,7 @@ import events
 from permissions import require_permission
 
 from redash import redis_connection, statsd_client, models, settings, utils, __version__
+from redash.jinja_filters import add_days, add_hours, format_datetime
 from redash.wsgi import app, auth, api
 
 import logging
@@ -359,6 +360,22 @@ class QueryResultListAPI(BaseResource):
     @require_permission('execute_query')
     def post(self):
         params = request.json
+
+
+        if settings.FEATURE_JINJA2_TEMPLATES:
+            query = params['query']
+
+            from jinja2 import Environment, Template
+            env = Environment()
+            env.filters['add_days'] = add_days
+            env.filters['add_hours'] = add_hours
+            env.filters['format_datetime'] = format_datetime
+
+            template = env.from_string(query)
+            query = template.render(now=datetime.datetime.now())
+            print query
+
+            params['query'] = query
 
         if settings.FEATURE_TABLES_PERMISSIONS:
             metadata = utils.SQLMetaData(params['query'])
