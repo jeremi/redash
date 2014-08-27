@@ -376,6 +376,7 @@ class QueryResultListAPI(BaseResource):
     @require_permission('execute_query')
     def post(self):
         params = request.json
+        query_params = json.loads(params["query_params"])
 
 
         if settings.FEATURE_JINJA2_TEMPLATES:
@@ -388,7 +389,7 @@ class QueryResultListAPI(BaseResource):
             env.filters['format_datetime'] = format_datetime
 
             template = env.from_string(query)
-            query = template.render(now=datetime.datetime.now())
+            query = template.render(now=datetime.datetime.now(), **query_params)
             print query
 
             params['query'] = query

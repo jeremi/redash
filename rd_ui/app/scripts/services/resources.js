@@ -343,10 +343,24 @@
       })
     }
 
+    QueryResult.getQueryParams = function () {
+        return _.chain(location.search.split("&"))
+            .map(function (item) {
+                return item[0] === "?" ? item.substring(1) : item
+            })
+            .filter(function (item) {
+                return item.substring(0, 6) === "param_"
+            })
+            .map(function (item) {
+                return item.substring(6).split("=")
+            })
+            .object().value();
+    }
+
     QueryResult.getById = function (id) {
       var queryResult = new QueryResult();
 
-      QueryResultResource.get({'id': id}, function (response) {
+      QueryResultResource.get({'id': id, 'query_params': JSON.stringify(QueryResult.getQueryParams())}, function (response) {
         queryResult.update(response);
       });
 
@@ -360,7 +374,7 @@
     QueryResult.get = function (data_source_id, query, ttl) {
       var queryResult = new QueryResult();
 
-      QueryResultResource.post({'data_source_id': data_source_id, 'query': query, 'ttl': ttl}, function (response) {
+      QueryResultResource.post({'data_source_id': data_source_id, 'query': query, 'ttl': ttl, 'query_params': JSON.stringify(QueryResult.getQueryParams())}, function (response) {
         queryResult.update(response);
 
         if ('job' in response) {

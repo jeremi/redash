@@ -6,7 +6,7 @@
 
     $scope.query = $route.current.locals.query;
     Events.record(currentUser, 'view', 'query', $scope.query.id);
-    $scope.queryResult = $scope.query.getQueryResult();
+    $scope.queryResult = $scope.query.getQueryResult(location.search.indexOf("nocache=1") !== -1 ? 0 : -1);
     $scope.queryExecuting = false;
 
     $scope.isQueryOwner = currentUser.id === $scope.query.user.id;

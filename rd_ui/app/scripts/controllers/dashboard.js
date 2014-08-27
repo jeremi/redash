@@ -127,7 +127,7 @@
       Events.record(currentUser, "view", "visualization", $scope.widget.visualization.id);
 
       $scope.query = $scope.widget.getQuery();
-      $scope.queryResult = $scope.query.getQueryResult();
+      $scope.queryResult = $scope.query.getQueryResult(location.search.indexOf("nocache=1") !== -1 ? 0 : -1);
       $scope.nextUpdateTime = moment(new Date(($scope.query.updated_at + $scope.query.ttl + $scope.query.runtime + 300) * 1000)).fromNow();
 
       $scope.type = 'visualization';
